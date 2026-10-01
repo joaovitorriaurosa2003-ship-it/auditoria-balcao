@@ -1,8 +1,20 @@
-// Service worker minimalista — só existe para o navegador aceitar
-// "instalar" o app na tela inicial (PWA). Não faz cache agressivo
-// porque o app depende de dados ao vivo do Firestore.
-const CACHE_NAME = "auditoria-balcao-v1";
-const CORE_ASSETS = ["./", "./index.html", "./manifest.json"];
+// Service worker do app Auditoria Balcão.
+// Necessário para o Chrome oferecer "Instalar app".
+// Estratégia: network-first só para arquivos do próprio site (mesma origem).
+// Requisições do Firebase, Google Fonts e CDNs passam direto, sem cache,
+// para não interferir na conexão em tempo real do Firestore.
+const CACHE_NAME = "auditoria-balcao-v2";
+const CORE_ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./assets/logo-pao-delicia.png",
+  "./assets/logo-kaluf-gomes.jpg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/favicon-32.png",
+  "./icons/apple-touch-icon.png",
+];
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -13,25 +25,29 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Network-first: sempre tenta buscar a versão mais nova; só cai pro
-// cache local se estiver offline. Evita "prender" a equipe numa
-// versão antiga do app.
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  const req = event.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return; // Firebase, fontes, CDN: deixa o navegador cuidar
+
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
+        }
         return response;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() =>
+        caches.match(req).then((cached) => cached || (req.mode === "navigate" ? caches.match("./index.html") : undefined))
+      )
   );
 });
