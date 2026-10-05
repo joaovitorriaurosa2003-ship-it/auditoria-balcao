@@ -8,7 +8,7 @@ Site: https://joaovitorriaurosa2003-ship-it.github.io/auditoria-balcao/
 ## Telas
 
 - **Início**: status da auditoria de hoje (Manhã e Tarde), indicadores gerais, evolução da conformidade, ranking por responsável e itens mais reprovados.
-- **Auditoria**: checklist em etapas (turno e responsável, uma página por categoria, revisão final com o percentual de conformidade).
+- **Auditoria**: abre na lista de checklists disponíveis (Balcão Manhã e Balcão Tarde, com o status de hoje). Ao escolher um, o checklist roda em etapas (data e responsável, uma página por categoria, revisão final com o percentual de conformidade).
 - **Histórico**: lista filtrável por turno, responsável e itens críticos, com o detalhe completo de cada auditoria.
 
 ## Instalar no celular
@@ -29,7 +29,7 @@ assets/         logos Pão Delícia e Kaluf & Gomes
 ## Dados (Firestore)
 
 Coleção `auditorias`, um documento por data e turno (id `AAAA-MM-DD_Turno`), com os campos
-`data`, `turno`, `responsavel`, `respostas`, `pct`, `criticosNao`, `criadoEm`.
+`data`, `turno`, `responsavel`, `respostas`, `pct`, `criticosNao`, `criadoEm`, `horaInicio`, `horaFim`, `obsEtapas` (observação por etapa) e `fotos` (até 6, comprimidas, guardadas no próprio documento).
 Salvar de novo a mesma data e turno substitui o registro anterior (o app avisa antes).
 
 Regra de segurança: só usuários autenticados leem e gravam em `/auditorias`.
