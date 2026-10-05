@@ -512,7 +512,8 @@ const ITENS_MANHA = [
   {id:"m24",cat:"Descarte e Lixo",label:"Lixos sendo retirados e separação correta",tipo:"opt",opts:OPT.simnao,crit:false},
   {id:"m25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnao,crit:false},
 ];
-const ITENS_TARDE = [
+// Versão antiga do checklist da tarde: usada só para exibir auditorias já salvas (sem campo "versao").
+const ITENS_TARDE_V1 = [
   {id:"t01",cat:"Limpeza e Organização",label:"Limpeza gôndula (realizada ou não e dia)",tipo:"texto"},
   {id:"t02",cat:"Produtos e Validade",label:"Reposição dos produtos gôndula",tipo:"opt",opts:OPT.reposicao,crit:false},
   {id:"t03",cat:"Produtos e Validade",label:"Foi olhada a data de validade e retirado produtos vencidos",tipo:"opt",opts:OPT.validade,crit:true},
@@ -540,6 +541,8 @@ const ITENS_TARDE = [
   {id:"t25",cat:"Produtos e Validade",label:"Torradas e farinha de pão",tipo:"opt",opts:OPT.simnaoparcial,crit:false},
   {id:"t27",cat:"Observações",label:"Faça sua observação",tipo:"texto"},
 ];
+// Desde a versão 2, Manhã e Tarde usam exatamente o mesmo checklist.
+const ITENS_TARDE = ITENS_MANHA;
 const CHECKLISTS = {"Manhã":ITENS_MANHA,"Tarde":ITENS_TARDE};
 const CONFORMES = new Set(["Sim","Foi Realizada"]);
 const PARCIAIS = new Set(["Parcial","Apenas a Validade","Talvez"]);
@@ -550,6 +553,7 @@ const CHECKLIST_DEFS = [
 ];
 function defChecklist(id){ return CHECKLIST_DEFS.find(d=>d.id===id) || CHECKLIST_DEFS[0]; }
 function itensDoTurno(turno){ return CHECKLISTS[turno] || ITENS_MANHA; }
+function itensDaAuditoria(a){ return (a && a.turno==="Tarde" && !a.versao)? ITENS_TARDE_V1 : itensDoTurno(a && a.turno); }
 function categoriasComItens(itens){ return CATEGORIAS.filter(c => itens.some(i=>i.cat===c)); }
 
 function calcConformidade(itens, respostas){
@@ -783,6 +787,7 @@ function subscribeAuditorias(){
 async function salvarAuditoriaFirestore(registro){
   const docId = `${registro.data}_${registro.turno}`;
   await db.collection("auditorias").doc(docId).set({
+    versao: 2,
     horaInicio: registro.horaInicio || null,
     horaFim: registro.horaFim || null,
     obsEtapas: registro.obsEtapas || {},
@@ -910,7 +915,7 @@ function renderInicio(el){
 
     const itemFalhas={};
     STATE.auditorias.forEach(a=>{
-      const itens=itensDoTurno(a.turno);
+      const itens=itensDaAuditoria(a);
       itens.forEach(it=>{
         if(it.tipo==="texto") return;
         const r=(a.respostas||{})[it.id];
@@ -1020,7 +1025,7 @@ function wizardSteps(){
 function renderHub(el){
   destroyCharts();
   const cards = CHECKLIST_DEFS.map(d=>{
-    const itens = d.id==="Manhã"? ITENS_MANHA : ITENS_TARDE;
+    const itens = itensDoTurno(d.id);
     const cats = categoriasComItens(itens).length;
     const au = auditoriaDoTurnoHoje(d.id);
     let status;
@@ -1418,7 +1423,7 @@ function renderHistorico(el){
 /* ---------- SHEET DE DETALHE ---------- */
 function abrirDetalhe(au){
   STATE.auditoriaAberta = au;
-  const itens = itensDoTurno(au.turno);
+  const itens = itensDaAuditoria(au);
   const cats = categoriasComItens(itens);
   const st = statusFromPct(au.pct);
 
