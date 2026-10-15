@@ -23,7 +23,7 @@ index.html      app completo (HTML, CSS e JS)
 manifest.json   dados do app instalável (nome, cores, ícones)
 sw.js           service worker (necessário para instalar)
 icons/          ícones do app
-assets/         logos Pão Delícia e Kaluf & Gomes
+assets/         logo Pão Delícia
 ```
 
 ## Dados (Firestore)
@@ -35,4 +35,4 @@ Salvar de novo a mesma data e turno substitui o registro anterior (o app avisa a
 Regra de segurança: só usuários autenticados leem e gravam em `/auditorias`.
 
 ---
-Desenvolvido por João Vitor Riau Rosa, Psicólogo Organizacional, CRP 06/227336 · Kaluf & Gomes Soluções Empresariais
+Desenvolvido por João Vitor Riau Rosa, Psicólogo Organizacional, CRP 06/227336

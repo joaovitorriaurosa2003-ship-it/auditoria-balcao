@@ -9,7 +9,6 @@ const CORE_ASSETS = [
   "./index.html",
   "./manifest.json",
   "./assets/logo-pao-delicia.png",
-  "./assets/logo-kaluf-gomes.jpg",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/favicon-32.png",
